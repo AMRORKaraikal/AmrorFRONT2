@@ -1,0 +1,62 @@
+{
+  "name": "amror",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@react-pdf/renderer": "^3.3.4",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "bwip-js": "^4.3.2",
+    "chart.js": "^4.4.2",
+    "dotenv": "^16.4.1",
+    "html-to-image": "^1.11.11",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
+    "jsqr": "^1.4.0",
+    "qrcode.react": "^3.1.0",
+    "react": "^18.2.0",
+    "react-barcode": "^1.5.0",
+    "react-chartjs-2": "^5.2.0",
+    "react-date-picker": "^10.6.0",
+    "react-datepicker": "^4.25.0",
+    "react-dom": "^18.2.0",
+    "react-qr": "^0.0.2",
+    "react-qr-code": "^2.0.12",
+    "react-router-dom": "^6.21.3",
+    "react-scripts": "5.0.1",
+    "react-select": "^5.8.0",
+    "react-to-pdf": "^1.0.1",
+    "react-to-print": "^2.14.15",
+    "react-webcam": "^7.2.0",
+    "reactstrap": "^9.2.2",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}
