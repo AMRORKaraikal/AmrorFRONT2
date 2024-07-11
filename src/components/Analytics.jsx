@@ -77,8 +77,8 @@ const MonthlyAnalytics = () => {
 	const fetchMonthlyData = async () => {
 		//console.log(selmonth, selyear)
 		const data = await fetch(
-			'http://localhost:5000/report', 
-			// 'https://amrorbackend-uvt9.onrender.com/report', 
+			// 'http://localhost:5000/report', 
+			'https://amrorbackend-uvt9.onrender.com/report', 
 			{
 			method: 'POST',
 			headers: {

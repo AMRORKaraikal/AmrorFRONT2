@@ -88,8 +88,8 @@ const ExistingPatient = () => {
 			if (isPrevData) {
 				setPatient_Id(patientData.patient_id)
 				await fetch(
-					// 'https://amrorbackend-uvt9.onrender.com/existing-specimen-register',
-					'http://localhost:5000/existing-specimen-register',
+					'https://amrorbackend-uvt9.onrender.com/existing-specimen-register',
+					// 'http://localhost:5000/existing-specimen-register',
 					{
 						method: 'POST',
 						headers: {
@@ -105,8 +105,8 @@ const ExistingPatient = () => {
 				//console.log({ patientData })
 
 				const response = await fetch(
-					'http://localhost:5000/new-specimen',
-					// 'https://amrorbackend-uvt9.onrender.com/new-specimen',
+					// 'http://localhost:5000/new-specimen',
+					'https://amrorbackend-uvt9.onrender.com/new-specimen',
 					{
 						method: 'POST',
 						headers: {
@@ -146,8 +146,8 @@ const ExistingPatient = () => {
 				return
 			}
 			const response = await fetch(
-				'http://localhost:5000/patient-details',
-				// 'https://amrorbackend-uvt9.onrender.com/patient-details',
+				// 'http://localhost:5000/patient-details',
+				'https://amrorbackend-uvt9.onrender.com/patient-details',
 				{
 					method: 'POST',
 					headers: {
