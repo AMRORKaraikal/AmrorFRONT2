@@ -225,8 +225,8 @@ const Pdf1 = ({ reportData, specimenData, patientData }) => {
 		let canvas4 = bwips.toCanvas('mycanvas', {
 			bcid: 'code128', // Barcode type
 			text: data, // Text to encode
-			scale: 3, // 3x scaling factor
-			height: 10, // Bar height, in millimeters
+			scale: 1, // 3x scaling factor
+			height: 5, // Bar height, in millimeters
 			includetext: true, // Show human-readable text
 			textxalign: 'center', // Always good to set this
 		})
@@ -249,7 +249,7 @@ const Pdf1 = ({ reportData, specimenData, patientData }) => {
 				height={842 * (5 / 3)}></canvas>
 			<canvas ref={canvasRef2} width={100} height={100}></canvas>
 			<canvas ref={canvasRef3} width={100} height={100}></canvas>
-			<canvas id="mycanvas" ref={canvasRef4} width={100} height={100}></canvas>
+			<canvas id="mycanvas" ref={canvasRef4} width={80} height={10}></canvas>
 		</div>
 	)
 }
