@@ -4,16 +4,16 @@ import img3 from './AmrorLogo.png'
 import { jsPDF } from 'jspdf'
 import * as bwips from 'bwip-js'
 
+const pdfDoc = new jsPDF('p', 'px', 'a4') // Setting PDF dimensions to A4 size
 const Pdf = ({ reportData, specimenData, patientData }) => {
 	const canvasRef = useRef(null)
 	const canvasRef2 = useRef(null)
 	const canvasRef3 = useRef(null)
 	const canvasRef4 = useRef(null)
-	const data = reportData.patient_id + ' ' + reportData.specimen_id
+	const data = patientData.patient_id + ' ' + specimenData.specimen_id
 	// //console.log(reportData, specimenData, patientData)
 
 	useEffect(() => {
-		const pdfDoc = new jsPDF('p', 'px', 'a4') // Setting PDF dimensions to A4 size
 		const canvas = canvasRef.current
 		const canvas2 = canvasRef2.current
 		const canvas3 = canvasRef3.current
@@ -417,12 +417,14 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 		pdfDoc.addImage(pdfDataURL2, 'JPEG', 10, 5)
 		pdfDoc.addImage(pdfDataURL3, 'JPEG', 380, 5)
 		pdfDoc.addImage(canvas4.toDataURL(), 'JPEG', 200, 500)
-		pdfDoc.save(`${specimenData.patient_id}.pdf`)
+
 		// Save or display the PDF (change the filename as needed)
-	}, [patientData, specimenData, reportData, data]) // Run this effect only once when the component mounts
+	}, [patientData, specimenData, reportData, data,img1,img3]) // Run this effect only once when the component mounts
 
 	return (
 		<div>
+
+			<button className='mt-5 ml-5 outline rounded-md px-4 py-2 bg-blue-400 text-white text-lg' onClick={() => { pdfDoc.save(`${specimenData.patient_id}.pdf`) }}>Download</button>
 			<canvas
 				ref={canvasRef}
 				width={595 * (5 / 3)}

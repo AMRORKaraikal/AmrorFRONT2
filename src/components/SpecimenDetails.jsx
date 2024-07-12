@@ -427,7 +427,7 @@ const SpecimenDetails = () => {
 			let len = table.length
 
 			if (len !== delNo) {
-				let tempTable = [...table]
+				let tempTable = [...table4]
 
 				tempTable = tempTable.filter((data) => {
 					return data.SNO < delNo || data.SNO > delNo
@@ -441,15 +441,15 @@ const SpecimenDetails = () => {
 					return data
 				})
 				//console.log('After map: ', tempTable)
-				setTable([])
-				setTable([...tempTable])
+				setTable4([])
+				setTable4([...tempTable])
 			} else {
 				let tempTable = []
 
-				tempTable = table.filter((data) => data.SNO !== delNo)
+				tempTable = table4.filter((data) => data.SNO !== delNo)
 				//console.log('After Filter: ', tempTable)
-				setTable([])
-				setTable([...tempTable])
+				setTable4([])
+				setTable4([...tempTable])
 			}
 			//console.log('after: ', table)
 		}

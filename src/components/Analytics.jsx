@@ -1,94 +1,48 @@
 import { useState, useEffect } from 'react'
 import { BarChart, HorizontalBarGraph } from './Charts'
 import { month } from './data'
+import * as XLSX from "xlsx";
 
 const MonthlyAnalytics = () => {
 	// Sample data structure
 	const [monthlyData, setMonthlyData] = useState([])
 	const [data, setData] = useState({})
-	const [report,setReport] = useState({})
+	const [report, setReport] = useState({})
 	const [selmonth, setMonth] = useState('')
 	const y = new Date()
 	const [selyear, setYear] = useState(y.getFullYear())
 	const [ready, setReady] = useState(false)
 
 
-	const download = (data) => {
-		// Create a Blob with the CSV data and type
-		const blob = new Blob([data], { type: 'text/csv' });
-		
-		// Create a URL for the Blob
-		const url = URL.createObjectURL(blob);
-		
-		// Create an anchor tag for downloading
-		const a = document.createElement('a');
-		
-		// Set the URL and download attribute of the anchor tag
-		a.href = url;
-		a.download = 'report.csv';
-		
-		// Trigger the download by clicking the anchor tag
-		a.click();
-	}
-	
-	// Function to create a CSV string from an object
-	const csvmaker = (data) => {
-		// Get the keys (headers) of the object
-		let csvRows = [];
 
-		// Headers is basically a keys of an object which 
-		// is id, name, and profession
-		const headers = Object.keys(data[0]);
-	
-		// As for making csv format, headers must be
-		// separated by comma and pushing it into array
-		csvRows.push(headers.join(','));
-	
-		// Pushing Object values into the array with
-		// comma separation
-	
-		// Looping through the data values and make
-		// sure to align values with respect to headers
-		for (const row of data) {
-			const values = headers.map(e => {
-				return row[e]
-			})
-			csvRows.push(values.join(','))
-		}
-	
-		// const values = Object.values(data).join(',');
-		// csvRows.push(values)
-	
-		// returning the array joining with new line 
-		return csvRows.join('\n')
-	
-	}
 	const getReport = async () => {
 		// Example data object
-		
-		
-		// Create the CSV string from the data
-		const csvdata = csvmaker(report);
-		
-		// Download the CSV file
-		download(csvdata);
+		const worksheet = XLSX.utils.json_to_sheet(report);
+		const workbook = XLSX.utils.book_new();
+		XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+		//let buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
+		//XLSX.write(workbook, { bookType: "xlsx", type: "binary" });
+		let file = 'report'+selmonth+selyear.toString()+'.xlsx'
+		XLSX.writeFile(workbook, file);
+
+
 	}
 	// Simulated API call to fetch monthly data
 	const fetchMonthlyData = async () => {
 		//console.log(selmonth, selyear)
 		const data = await fetch(
 			// 'http://localhost:5000/report', 
-			'https://amrorbackend-uvt9.onrender.com/report', 
+			'https://amrorbackend-uvt9.onrender.com/report',
 			{
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-			body: JSON.stringify({
-				month: selmonth,
-				year: selyear,
-			}),
-		})
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					month: selmonth,
+					year: selyear,
+				}),
+			})
 		const jsonData = await data.json()
 		//console.log(jsonData.data)
 		setReport(jsonData.report)
@@ -143,12 +97,12 @@ const MonthlyAnalytics = () => {
 			{ready && (
 				<>
 					<div>
-					<button
-					id="button"
-					onClick={getReport}
-					className="outline-none  rounded-lg px-5 py-3 bg-red-400 text-white text-lg">
-					Download Report
-				</button>
+						<button
+							id="button"
+							onClick={getReport}
+							className="outline-none  rounded-lg px-5 py-3 bg-red-400 text-white text-lg">
+							Download Report
+						</button>
 					</div>
 					<HorizontalBarGraph data={data} />
 					{monthlyData.map((microbe, index) => {

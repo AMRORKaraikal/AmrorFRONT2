@@ -107,17 +107,18 @@ export const month = [
 	'December',
 ]
 
-export const dropDown1 = ['Gram Stain', 'Wet Mount ', 'KOH', ' Others']
+export const dropDown1 = ['Culture and Sensitivity','Gram Stain', 'Wet Mount ', 'KOH', ' Others']
 export const dropDown3 = [
+	'Culture and Sensitivity',
 	'Gram Stain',
 	'Wet Mount ',
 	'KOH',
 	'Hanging Drop Method',
 	' Others',
 ]
-export const dropDown2 = ['48 hours', '72 hours', 'one week', 'four weeks']
+export const dropDown2 = ['24 hours','48 hours', '72 hours', 'one week', 'four weeks']
 export const standard_comments = {
-	'Staphylococcus aureus': [
+	'Staphylococcus aureus': ['--select--',
 		'Erythromycin and Clindamycin NOT routinely reported on this organisms isolated from the urinary tract.',
 		'Penicillin-susceptible staphylococci are also susceptible to other β-lactam agents with established clinical efficacy for staphylococcal infections. .',
 		'Penicillin-resistant staphylococci are resistant to penicillinase-labile Penicillins lke Ampicillin & Amoxycillin.',
@@ -136,7 +137,7 @@ export const standard_comments = {
 		'Chloramphenicol: Nor routinely reported on organisms isolated from Urinary tract.',
 		'others',
 	],
-	'Enterococcus species': [
+	'Enterococcus species': ['--select--',
 		'For Enterococcus spp, Aminoglycosides, (Except High level AG testing), Cephalosporins, Clindamycin and Cotrimoxazole may appear active in vitro, but they are not effective clinically and should not be reported as susceptible..',
 		'Synergy between Ampicillin, Penicillin, Vancomycin and Aminoglycosides can be predicted for Enterococci by using high level Gentamycin and Streptomycin.',
 		'“Intermediate” (I) with inverted v (^) indicates agents that have the potential to concentrate in the urine.',
@@ -155,7 +156,7 @@ export const standard_comments = {
 		'E faecalis susceptible to Linezolid by MIC also considered susceptible to Tedizolid. Organism Intermediate or resistant to Linezolid may be susceptible to Tedizolid.',
 		'others',
 	],
-	'Streptococcus pneumoniae': [
+	'Streptococcus pneumoniae': ['--select--',
 		'For Pneumococci: Testing Chloramphenicol, Clindamycin, Linezolid, Tedizolid, and Tetracycline by broth microdilution MIC, trailing growth can male end – point determination difficult. Trimethoprim and sulfonamides antagonists in the medium may allow slight growth: therefore, read the end point at the concentration in which there is >80% reduction in growth compared with the control..',
 		'Amoxicillin, Ampicillin, Cefepime, Ceftriaxone, Cefuroxime, Ertapenem, Imipenem and Meropenem: susceptibility is determined by MIC method..',
 		'Penicillin, Cefotaxime, Ceftriaxone, or Meropenem: tested by MIC method and reported with S. pneumoniae isolated from CSF .',
@@ -172,7 +173,7 @@ export const standard_comments = {
 		'D -zone to be noted for S pneumoniae.',
 		'others',
 	],
-	'B – Hemolytic Streptococcus': [
+	'B – Hemolytic Streptococcus': ['--select--',
 		'For Beta hemolytic Streptococcus, testing Chloramphenicol, Clindamycin, Erythromycin, Linezolid, Tedizolid and Tetracycline by broth dilution MIC, Trailing growth can make end – point determination is difficult. In such cases, read the MIC at the lowest concentration where the trailing begins. Tiny buttons of growth should be ignored..',
 		'BH group includes large – colony forming pyogenic strains of Streptococci with gropu A, C or G and B. .',
 		'Small colony – forming Beta hemolytic strains with Group A, C,F or G are considered part of the viridans group and break points of the viridans group should be used..',
@@ -191,7 +192,7 @@ export const standard_comments = {
 		'For S. pyogenes & S agalactiae, susceptible to Linezolid by MIC also considered susceptible to Tedizolid. Organism Intermediate or resistant to Linezolid may be susceptible to Tedizolid.',
 		'others',
 	],
-	'ENTEROBACTERALES.': [
+	'ENTEROBACTERALES.': ['--select--',
 		'AMPICILLIN (10 µg)	Result can be used to predict for Amoxicillin, Oral therapy for Uncomplicated UTIs –E.coli & P.mirabilis.',
 		'CEFAZOLIN  (30 µg)	Used for other than Uncomplicated UTIs-Ec, Kp, Pm.',
 		'CEFOTAXIME (30µg) or CEFTRIAXONE(30 µg)	ESBL testing by phenotypic or genotypic methods for management or Epidemiology or infection prevention purpose(IPP). Some develop resistant during therapy with third generation cephalosporins as a result of depression of AmpC B-lactamase, ie; Initially susceptible become resistant within few days after therapy. Testing subsequent isolate is needed.',
@@ -207,7 +208,7 @@ export const standard_comments = {
 		'CEFTAZIDIME(30µg)	ESBL testing by phenotypic or genotypic methods for management or Epidemiology or IPP.',
 		'others',
 	],
-	'SALMONELLA AND SHIGELLA': [
+	'SALMONELLA AND SHIGELLA': ['--select--',
 		'AMPICILLIN (10 µg)	Result can be used to predict for Amoxicillin (Shigella - poor efficacy for Amoxycillin), Oral therapy for Salmonella & Shigella.',
 		'CIPROFLOXACIN (5µg) For Salmonella spp	Not susceptible- clinical failure or delayed response.',
 		'LEVOFLOXACIN(5µg) For Salmonella spp	MIC only.',
@@ -220,7 +221,7 @@ export const standard_comments = {
 		'CHLORAMPHENICOL (30 µg)	Only for extra-intestinal Salmonellosis (not UTI).',
 		'others',
 	],
-	'PSEUDOMONAS AERUGINOSA': [
+	'PSEUDOMONAS AERUGINOSA': ['--select--',
 		'May develop resistance during therapy with all antimicrobial agents. Isolates initially susceptible may become resistant within a few days after therapy. Testing of repeat isolates may be warranted .',
 		'TOBRAMYCIN	Does not predict susceptibility to GentamicinCombination therapy indicated other thsn UTI- P.aeruginosa.',
 		'others',
