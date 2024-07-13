@@ -182,7 +182,7 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 		ctx.font = 'bold 10px Times New Roman '
 		ctx.fillText('JIPMER KARAIKAL', 25, 105 + 12)
 		ctx.font = ' 16px Times New Roman ' //font
-		var y2 = 525
+		var y2 = 470
 		Object.keys(microbeMap).forEach((microbe) => {
 			const results = microbeMap[microbe]
 
@@ -251,7 +251,7 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 				y2 += 20 // Move to the next line
 			})
 
-			y2 += 20 // Add some space between different microbes
+			y2 += 10 // Add some space between different microbes
 		})
 		ctx.font = 'bold 22px Times New Roman ' //font
 		ctx.fillText('GOVERNMENT OF PUDUCHERRY', 235, 45)
@@ -264,9 +264,9 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Patient Details', x1, y1)
 		ctx.fillText('Specimen Details', x3, y1)
 		ctx.fillText('Clinical Details', x2, y1)
-		ctx.fillText('Direct Microscopic Examination:', x4, y1 + 260)
-		ctx.fillText('Culture Results:', x4, y1 + 315)
-		ctx.fillText('Antimicrobial Susceptibility Test:', x4, y1 + 370)
+		ctx.fillText('Direct Microscopic Examination:', x4, y1 + 220)
+		ctx.fillText('Culture Results:', x4, y1 + 255)
+		ctx.fillText('Antimicrobial Susceptibility Test:', x4, y1 + 310)
 		ctx.fillText('Comments:', x4, y2)
 
 		ctx.font = '14px Times New Roman'
@@ -321,7 +321,7 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Nature of specimen:', x3, y1 + 40)
 		ctx.fillText(specimen_nature, x3 + 113, y1 + 55) //nature
 		ctx.fillText('Specimen Source / Body Site:', x3, y1 + 80)
-		ctx.fillText(specimen_source, x3 + 113, y1 + 95) //site
+		ctx.fillText(specimen_source, x3 + 3, y1 + 95) //site
 		ctx.fillText('Date of Collection:', x3, y1 + 120)
 		ctx.fillText(collection_date.slice(0, 10), x3 + 113, y1 + 120) //date
 		ctx.fillText('Time of Collection:', x3, y1 + 140)
@@ -330,12 +330,12 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText(investigation_required, x3 + 53, y1 + 175) //investigation
 
 		//two major comp
-		ctx.fillText(direct_microscopic_examination, 60, y1 + 273) //direct
+		ctx.fillText(direct_microscopic_examination, 60, y1 + 233) //direct
 		if (culture_results) {
 			if (culture_results.includes('.')) {
 				var culture_results_list = culture_results.split('.')
 				for (let i = 0; i < culture_results_list.length; i++) {
-					ctx.fillText(culture_results_list[i], 60, y1 + 328 + i * 15) //culture
+					ctx.fillText(culture_results_list[i], 60, y1 + 268 + i * 15) //culture
 				}
 			} else {
 				ctx.fillText(culture_results, 60, y1 + 328) //culture
@@ -345,24 +345,55 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 		let result = []
 		let result2 = []
 		try {
-			let words = comments.split(' ')
-
+			// Define the maximum pixel width for each line
+			const maxWidth = 650; // Set this to your desired width
+		
+			// Split the comments into words
+			let words = comments.split(' ');
+		
 			// Initialize an empty array to store the result
-
-			// Iterate over the words array and group them into strings containing 20 words each
-			for (let i = 0; i < words.length; i += 10) {
-				let chunk = words.slice(i, i + 10)
-				result.push(chunk.join(' '))
+			let result = [];
+			let line = '';
+		
+			// Iterate over the words array and group them into lines that fit within the maxWidth
+			for (let i = 0; i < words.length; i++) {
+				let testLine = line + words[i] + ' ';
+				let metrics = ctx.measureText(testLine);
+				let testWidth = metrics.width;
+		
+				if (testWidth > maxWidth && i > 0) {
+					result.push(line.trim());
+					line = words[i] + ' ';
+				} else {
+					line = testLine;
+				}
 			}
-
-			// console.log(result)
+			// Push the last line
+			result.push(line.trim());
+		
+			// Draw the text on the canvas
+			for (let i = 0; i < result.length; i++) {
+				let wordsInLine = result[i].split(' ');
+				if (wordsInLine.length > 1) {
+					// Justify the text
+					let lineLength = ctx.measureText(result[i]).width;
+					let spaceWidth = (maxWidth - lineLength) / (wordsInLine.length - 1);
+					let xOffset = x5;
+		
+					for (let j = 0; j < wordsInLine.length; j++) {
+						ctx.fillText(wordsInLine[j], xOffset, y2);
+						xOffset += ctx.measureText(wordsInLine[j]).width + spaceWidth;
+					}
+				} else {
+					// If only one word, just draw it
+					ctx.fillText(result[i], x5, y2);
+				}
+				y2 += 15; // Move to the next line
+			}
 		} catch (error) {
-			console.log(error)
+			console.log(error);
 		}
-		for (let i = 0; i < result.length; i++) {
-			ctx.fillText(result[i], x5, y2)
-			y2 += 15
-		} //comment}
+		
 		y2 += 10
 		ctx.font = 'bold 18px Times New Roman ' //font
 		ctx.fillText('Note:', x4, y2)
@@ -410,13 +441,13 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 			includetext: true, // Show human-readable text
 			textxalign: 'center', // Always good to set this
 		})
-		ctx.drawImage(canvas4, 450, y2)
+		ctx.drawImage(canvas4, 600, 350)
 
 		// Add the data URL to the PDF document
 		pdfDoc.addImage(pdfDataURL, 'JPEG', 0, 0)
 		pdfDoc.addImage(pdfDataURL2, 'JPEG', 10, 5)
 		pdfDoc.addImage(pdfDataURL3, 'JPEG', 380, 5)
-		pdfDoc.addImage(canvas4.toDataURL(), 'JPEG', 200, 500)
+		pdfDoc.addImage(canvas4.toDataURL(), 'JPEG', 350, 192)
 
 		// Save or display the PDF (change the filename as needed)
 	}, [patientData, specimenData, reportData, data,img1,img3]) // Run this effect only once when the component mounts
