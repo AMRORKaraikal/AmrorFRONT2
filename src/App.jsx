@@ -59,10 +59,10 @@ function App() {
 							Monthly Analytics
 						</button>
 					</div>
-					{comp === 1 && <PatientHistory />}
-					{comp === 2 && <NewSpecimen />}
+					{/* {comp === 2 && <NewSpecimen />} */}
 					{comp === 3 && <ExistingPatient />}
 					{comp === 4 && <SpecimenDetails />}
+					{comp === 1 && <PatientHistory />}
 					{comp === 5 && <MonthlyAnalytics />}
 				</div>
 			</div>

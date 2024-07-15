@@ -57,7 +57,7 @@ const MonthlyAnalytics = () => {
 	}, [monthlyData, data])
 
 	return (
-		<div className="mt-10 ml-10 bg-white">
+		<div className="mt-10 mx-5 bg-white p-5 rounded-sm">
 			<div className="flex gap-x-5">
 				<label className="text-xl text-gray-800">Month:</label>
 				<select
