@@ -112,9 +112,14 @@ const MonthlyAnalytics = () => {
 			)
 			const jsonData = await data.json()
 			console.log(jsonData.report)
-			setReport(jsonData.report)
-			setMonthlyData(jsonData.data)
-			setData(jsonData.micro)
+			if (jsonData) {
+				setReport(jsonData.report)
+				setMonthlyData(jsonData.data)
+				setData(jsonData.micro)
+			} else {
+				alert('No Data Found')
+				return
+			}
 		}
 	}
 	useEffect(() => {
