@@ -123,7 +123,7 @@ const MonthlyAnalytics = () => {
 		}
 	}
 	useEffect(() => {
-		if (monthlyData.length > 0 && Object.keys(data).length > 0) {
+		if (monthlyData?.length > 0 && Object.keys(data)?.length > 0) {
 			//console.log(monthlyData)
 			setReady(true)
 		}
