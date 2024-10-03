@@ -1,6 +1,6 @@
 const Preview = ({ patientData, SpecimenData }) => {
 	const {
-		hospital_id,
+		lab_id,
 		patient_name,
 		father_name,
 		village_name,
@@ -9,7 +9,6 @@ const Preview = ({ patientData, SpecimenData }) => {
 		patient_mobile,
 	} = patientData
 	const {
-		specimen_id,
 		specimen_nature,
 		specimen_source,
 
@@ -27,12 +26,12 @@ const Preview = ({ patientData, SpecimenData }) => {
 			<div className="flex flex-col space-y-2 w-[32em]">
 				{/* <!-- Hospital Id --> */}
 				<div className="flex flex-col">
-					<label className="text-sm text-gray-600">Hospital Id:</label>
+					<label className="text-sm text-gray-600">Lab Id:</label>
 					<input
-						id="hospital-id"
+						id="lab-id"
 						type="text"
-						value={hospital_id}
-						placeholder="Hospital ID"
+						value={lab_id}
+						placeholder="lab ID"
 						className="p-2 border border-gray-300 rounded-md"
 						required={true}
 						readOnly={true}
@@ -182,18 +181,6 @@ const Preview = ({ patientData, SpecimenData }) => {
 			</div>
 			<div className="flex flex-col space-y-2 w-[32em]">
 				{/* Sample ID */}
-				<div className="flex flex-col">
-					<label className="text-sm text-gray-600">Sample ID : -</label>
-					<input
-						id="sample-id"
-						type="number"
-						value={specimen_id}
-						placeholder="Sample ID"
-						className="p-2 border border-gray-300 rounded-md"
-						required={true}
-						readOnly={true}
-					/>
-				</div>
 
 				{/* Nature of Specimen */}
 				<div className="flex flex-col">

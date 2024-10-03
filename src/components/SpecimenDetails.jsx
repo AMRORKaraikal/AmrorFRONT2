@@ -41,15 +41,15 @@ const SpecimenDetails = () => {
 	const [table3, setTable3] = useState([])
 	const [table4, setTable4] = useState([])
 
-	const [patient_id, setPatient_id] = useState(localStorage.getItem("barcode")?.split(" ")[0]|'')
-	const [specimen_id, setSpecimen_id] = useState(localStorage.getItem("barcode")?.split(" ")[1]|'')
+	const [patient_id, setPatient_id] = useState(
+		localStorage.getItem('barcode') || ''
+	)
+
 	const [micVal, setMicVal] = useState('')
 	const [micResult, setMicResult] = useState('')
 	const [commentsList, setCommentsList] = useState([])
 	const [comments, setComments] = useState('')
 	const [comment1, setComment1] = useState('')
-	
-	
 
 	const getDetails = async (e) => {
 		e.preventDefault()
@@ -57,8 +57,8 @@ const SpecimenDetails = () => {
 		//console.log(patient_id)
 		//console.log(specimen_id)
 		try {
-			if (!patient_id || !specimen_id) {
-				alert('Enter Patient ID and Speciment ID')
+			if (!patient_id) {
+				alert('Enter Lab ID')
 				return
 			}
 			const response = await fetch(
@@ -69,8 +69,7 @@ const SpecimenDetails = () => {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
-						patient_id: patient_id,
-						specimen_id: specimen_id,
+						lab_id: patient_id,
 					}),
 				}
 			)
@@ -80,7 +79,7 @@ const SpecimenDetails = () => {
 				setSpecimenData(result.specimenData)
 				setPatientData(result.patientData)
 				setDetails(true)
-				//console.log(result.patientData.patient_id)
+				// console.log(result.patientData.lab_id)
 				// setPatient_id(result.patientData.patient_id)
 			}
 		} catch (errror) {
@@ -105,8 +104,7 @@ const SpecimenDetails = () => {
 			//console.log(specimen_id)
 			try {
 				const report_data = {
-					patient_id: patientData.patient_id,
-					specimen_id: specimen_id,
+					lab_id: patientData.lab_id,
 					direct_microscopic_examination: directMicroscopicExamination,
 					culture_results: cultureResult,
 					ast: table,
@@ -169,6 +167,8 @@ const SpecimenDetails = () => {
 			micres = micResult
 			setMicVal('')
 			setMicResult('')
+			console.log(micVal)
+			console.log(micResult)
 			// setMicrobe(microbes_list[0])
 			setAntibiotic(antibiotic_list[0])
 			setResult('Resistant')
@@ -179,6 +179,7 @@ const SpecimenDetails = () => {
 			if (table.length === 0) {
 				snum = 1
 			}
+			console.log(micres)
 
 			let data = {
 				SNO: snum,
@@ -536,23 +537,21 @@ const SpecimenDetails = () => {
 				<form className="justify-center flex flex-col">
 					<div className="flex w-full justify-evenly">
 						<div className="flex flex-col space-y-2 w-[32em]">
-						<div className="flex flex-col">
+							<div className="flex flex-col">
 								<label className="text-sm text-gray-600">Scan</label>
 								<input
 									id="patient-id"
 									type="text"
-									
-									onChange={(e) =>{
-										 setPatient_id(e.target.value.split(" ")[0])
-										 setSpecimen_id(e.target.value.split(" ")[1])
-										}}
+									onChange={(e) => {
+										setPatient_id(e.target.value)
+									}}
 									placeholder="scan barcode"
 									className="p-2 border border-gray-300 rounded-md"
 									required={true}
 								/>
 							</div>
 							<div className="flex flex-col">
-								<label className="text-sm text-gray-600">Patient ID:</label>
+								<label className="text-sm text-gray-600">Lab ID:</label>
 								<input
 									id="patient-id"
 									type="text"
@@ -564,18 +563,6 @@ const SpecimenDetails = () => {
 								/>
 							</div>
 
-							<div className="flex flex-col">
-								<label className="text-sm text-gray-600">Sample ID :</label>
-								<input
-									id="sample-id"
-									type="text"
-									value={specimen_id}
-									onChange={(e) => setSpecimen_id(e.target.value)}
-									placeholder="Sample ID"
-									className="p-2 border border-gray-300 rounded-md"
-									required={true}
-								/>
-							</div>
 							<div className="my-3 flex justify-end">
 								<button
 									id="submit-button"
@@ -846,6 +833,7 @@ const SpecimenDetails = () => {
 									className="w-24 mt-3 outline rounded-md"
 									value={micResult}
 									onChange={(e) => setMicResult(e.target.value)}>
+									<option value="">--select--</option>
 									<option value="Resistant">Resistant</option>
 									<option value="SDD">SDD</option>
 									<option value="Intermediate">Intermediate</option>
@@ -866,14 +854,17 @@ const SpecimenDetails = () => {
 									<div className="border-2 border-black text-center bg-blue-500 text-white text-lg p-4 w-1/12">
 										S.No.
 									</div>
-									<div className="border-2 text-wrap border-black text-center bg-blue-500 text-white text-lg p-4 w-4/12">
+									<div className="border-2 text-wrap border-black text-center bg-blue-500 text-white text-lg p-4 w-3/12">
 										Microbe
 									</div>
 									<div className="border-2 text-wrap border-black text-center bg-blue-500 text-white text-lg p-4 w-3/12">
 										Antibiotic
 									</div>
-									<div className="border-2 border-black text-center bg-blue-500 text-white text-lg p-4 w-3/12">
+									<div className="border-2 border-black text-center bg-blue-500 text-white text-lg p-4 w-2/12">
 										Result
+									</div>
+									<div className="border-2 border-black text-center bg-blue-500 text-white text-lg p-4 w-2/12">
+										MIC Result
 									</div>
 									<div className="border-2 border-black text-center bg-blue-500 text-white text-lg p-4 w-1/12">
 										Delete
@@ -887,14 +878,17 @@ const SpecimenDetails = () => {
 												<div className="border-2 border-black text-center bg-yellow-200 text-black text-lg p-4 w-1/12">
 													{data.SNO}
 												</div>
-												<div className="border-2 border-black text-center bg-yellow-200 text-black text-lg p-4 w-4/12">
+												<div className="border-2 border-black text-center bg-yellow-200 text-black text-lg p-4 w-3/12">
 													{data.Microbe}
 												</div>
 												<div className="border-2 border-black text-center bg-yellow-200 text-black text-lg p-4 w-3/12">
 													{data.Antibiotic}
 												</div>
-												<div className="border-2 border-black text-center bg-yellow-200 text-black text-lg p-4 w-3/12">
+												<div className="border-2 border-black text-center bg-yellow-200 text-black text-lg p-4 w-2/12">
 													{data.Result}
+												</div>
+												<div className="border-2 border-black text-center bg-yellow-200 text-black text-lg p-4 w-2/12">
+													{data.Mic_result}
 												</div>
 												<div className="border-2 border-black text-center bg-yellow-200 text-black text-lg p-4 w-1/12">
 													<button

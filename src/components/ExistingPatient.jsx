@@ -17,8 +17,6 @@ const ExistingPatient = () => {
 	const [investigation_requireddet, setInvestigation_RequiredDet] = useState('')
 	const [clinical_ho, setClinical_Ho] = useState('')
 	const [provisional_diagnosis, setProvisional_Diagnosis] = useState('')
-
-	const [sample_id, setSample_Id] = useState(0)
 	const [specimen_nature, setSpecimen_Nature] = useState('')
 	const [specimen_source, setSpecimen_Source] = useState('')
 	const [collection_time, setCollection_Time] = useState('')
@@ -40,23 +38,6 @@ const ExistingPatient = () => {
 
 	const [patientData, setPatientData] = useState({})
 	const locationList = ['ICU', 'Ward', 'OPD', 'Casuality']
-	useEffect(() => {
-		async function getCount() {
-			const response = await fetch(
-				'https://amrorbackend-uvt9.onrender.com/specimen-id',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				}
-			)
-			const result = await response.json()
-			// //console.log(result)
-			setSample_Id(result.count)
-		}
-		getCount()
-	}, [])
 
 	const submitNewSpecimen = async (e) => {
 		e.preventDefault()
@@ -69,7 +50,7 @@ const ExistingPatient = () => {
 			clinical_ho: clinical_ho,
 			provisional_diagnosis: provisional_diagnosis,
 			antibiotics_given: antibiotics_given,
-			specimen_id: sample_id,
+			lab_id: patientData.lab_id,
 			specimen_nature: specimen_nature + '-' + specimen_naturedet,
 			specimen_source: specimen_source,
 			collection_date: collectionDate,
@@ -89,7 +70,7 @@ const ExistingPatient = () => {
 				setPatient_Id(patientData.patient_id)
 				await fetch(
 					'https://amrorbackend-uvt9.onrender.com/existing-specimen-register',
-					// 'http://localhost:5000/existing-specimen-register',
+					// 'https://amrorbackend-uvt9.onrender.com/existing-specimen-register',
 					{
 						method: 'POST',
 						headers: {
@@ -105,7 +86,7 @@ const ExistingPatient = () => {
 				//console.log({ patientData })
 
 				const response = await fetch(
-					// 'http://localhost:5000/new-specimen',
+					// 'https://amrorbackend-uvt9.onrender.com/new-specimen',
 					'https://amrorbackend-uvt9.onrender.com/new-specimen',
 					{
 						method: 'POST',
@@ -119,7 +100,7 @@ const ExistingPatient = () => {
 					}
 				)
 				const result = await response.json()
-				setPatient_Id(result.patientId)
+				setPatient_Id(result.lab_id)
 			}
 
 			// const result = await response.json()
@@ -130,59 +111,59 @@ const ExistingPatient = () => {
 		}
 	}
 	useEffect(() => {
-		const tem = patient_id + ' ' + sample_id
+		const tem = patient_id
 		setQrData(tem)
-		localStorage.setItem("barcode",tem)
+		localStorage.setItem('barcode', tem)
 		setShowQr(true)
-	}, [patient_id, sample_id])
-	const getDetails = async (e) => {
-		e.preventDefault()
+	}, [patient_id])
+	// const getDetails = async (e) => {
+	// 	e.preventDefault()
 
-		//console.log(patient_mobile)
-		//console.log(patient_name)
-		try {
-			if (!patientData.patient_mobile || !patientData.patient_name) {
-				alert('Enter Patient Name and Mobile Number')
-				return
-			}
-			const response = await fetch(
-				// 'http://localhost:5000/patient-details',
-				'https://amrorbackend-uvt9.onrender.com/patient-details',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						patient_mobile: patientData.patient_mobile,
-						patient_name: patientData.patient_name,
-					}),
-				}
-			)
-			const result = await response.json()
-			if (result.success) {
-				setPatientData(result.patientData)
-				setPatient_Id(patientData.patient_id)
-				//console.log('patientData: ', patientData)
-				setIsPrevData(true)
-			} else {
-				setIsPrevData(false)
-				alert('Patient details not found, please fill it.')
-				setPatientData({
-					...patientData,
-					hospital_id: '',
-					father_name: '',
-					village_name: '',
-					patient_age: '',
-					gender: '',
-					location: '',
-				})
-			}
-		} catch (errror) {
-			alert('Failed to fetch patient!!!')
-			//console.log(errror)
-		}
-	}
+	// 	//console.log(patient_mobile)
+	// 	//console.log(patient_name)
+	// 	try {
+	// 		if (!patientData.patient_mobile || !patientData.patient_name) {
+	// 			alert('Enter Patient Name and Mobile Number')
+	// 			return
+	// 		}
+	// 		const response = await fetch(
+	// 			// 'https://amrorbackend-uvt9.onrender.com/patient-details',
+	// 			'https://amrorbackend-uvt9.onrender.com/patient-details',
+	// 			{
+	// 				method: 'POST',
+	// 				headers: {
+	// 					'Content-Type': 'application/json',
+	// 				},
+	// 				body: JSON.stringify({
+	// 					patient_mobile: patientData.patient_mobile,
+	// 					patient_name: patientData.patient_name,
+	// 				}),
+	// 			}
+	// 		)
+	// 		const result = await response.json()
+	// 		if (result.success) {
+	// 			setPatientData(result.patientData)
+	// 			setPatient_Id(patientData.patient_id)
+	// 			//console.log('patientData: ', patientData)
+	// 			setIsPrevData(true)
+	// 		} else {
+	// 			setIsPrevData(false)
+	// 			alert('Patient details not found, please fill it.')
+	// 			setPatientData({
+	// 				...patientData,
+	// 				hospital_id: '',
+	// 				father_name: '',
+	// 				village_name: '',
+	// 				patient_age: '',
+	// 				gender: '',
+	// 				location: '',
+	// 			})
+	// 		}
+	// 	} catch (errror) {
+	// 		alert('Failed to fetch patient!!!')
+	// 		//console.log(errror)
+	// 	}
+	// }
 
 	return (
 		<>
@@ -192,75 +173,20 @@ const ExistingPatient = () => {
 						<form className="justify-center flex flex-col">
 							<div className="flex w-full justify-evenly">
 								<div className="flex flex-col space-y-2 w-[32em]">
+									{/* <!-- Lab Id --> */}
 									<div className="flex flex-col">
-										<label className="text-sm text-gray-800">
-											Enter Phone Number:
-										</label>
+										<label className="text-sm text-gray-800">Lab Id:</label>
 										<input
-											id="patient-mobile"
+											id="lab-id"
 											type="text"
-											value={patientData.patient_mobile}
+											value={patientData.lab_id}
 											onChange={(e) =>
 												setPatientData({
 													...patientData,
-													patient_mobile: e.target.value,
+													lab_id: e.target.value,
 												})
 											}
-											placeholder="Patient Mobile Number"
-											className="p-2 border border-gray-300 rounded-md"
-											required={true}
-										/>
-									</div>
-
-									<div className="flex flex-col">
-										<label className="text-sm text-gray-800">
-											Patient Name:{' '}
-										</label>
-										<input
-											id="patient-name"
-											type="text"
-											value={patientData.patient_name}
-											onChange={(e) =>
-												setPatientData({
-													...patientData,
-													patient_name: e.target.value,
-												})
-											}
-											placeholder="Patient Name"
-											className="p-2 border border-gray-300 rounded-md"
-											required={true}
-										/>
-									</div>
-									<div className="my-3 flex justify-end">
-										<button
-											id="submit-button"
-											onClick={getDetails}
-											className="outline-none  rounded-lg px-5 py-3 bg-red-400 text-white text-lg">
-											Check
-										</button>
-									</div>
-								</div>
-							</div>
-						</form>
-						<form className="justify-center flex flex-col">
-							<div className="flex w-full justify-evenly">
-								<div className="flex flex-col space-y-2 w-[32em]">
-									{/* <!-- Hospital Id --> */}
-									<div className="flex flex-col">
-										<label className="text-sm text-gray-800">
-											Hospital Id:
-										</label>
-										<input
-											id="hospital-id"
-											type="text"
-											value={patientData.hospital_id}
-											onChange={(e) =>
-												setPatientData({
-													...patientData,
-													hospital_id: e.target.value,
-												})
-											}
-											placeholder="Hospital ID"
+											placeholder="Lab ID"
 											className="p-2 border border-gray-300 rounded-md"
 											disabled={isPrevData}
 											required={true}
@@ -433,7 +359,6 @@ const ExistingPatient = () => {
 												})
 											}}
 											placeholder="Mobile"
-											disabled={true}
 											className="p-2 border border-gray-300 rounded-md"
 										/>
 									</div>
@@ -518,20 +443,6 @@ const ExistingPatient = () => {
 									</div>
 								</div>
 								<div className="flex flex-col space-y-2 w-[32em]">
-									{/* Sample ID */}
-									<div className="flex flex-col">
-										<label className="text-sm text-gray-800">Sample ID :</label>
-										<input
-											id="sample-id"
-											type="number"
-											value={sample_id}
-											placeholder="Sample ID"
-											className="p-2 border border-gray-300 rounded-md"
-											required={true}
-											disabled
-										/>
-									</div>
-
 									{/* Nature of Specimen */}
 									<div className="flex flex-col">
 										<label className="text-sm text-gray-800">
