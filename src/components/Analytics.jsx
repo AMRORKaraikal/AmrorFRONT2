@@ -112,13 +112,13 @@ const MonthlyAnalytics = () => {
 			)
 			const jsonData = await data.json()
 			console.log(jsonData.report)
-			if (jsonData) {
+			if (!jsonData) {
+				alert('No Data Found')
+				return
+			} else {
 				setReport(jsonData.report)
 				setMonthlyData(jsonData.data)
 				setData(jsonData.micro)
-			} else {
-				alert('No Data Found')
-				return
 			}
 		}
 	}
