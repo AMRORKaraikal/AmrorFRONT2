@@ -92,9 +92,14 @@ const MonthlyAnalytics = () => {
 			)
 			const jsonData = await data.json()
 			//console.log(jsonData.data)
-			setReport(jsonData.report)
-			setMonthlyData(jsonData.data)
-			setData(jsonData.micro)
+			if (jsonData.report === undefined) {
+				alert('No Data Found')
+				return
+			} else {
+				setReport(jsonData.report)
+				setMonthlyData(jsonData.data)
+				setData(jsonData.micro)
+			}
 		} else {
 			const data = await fetch(
 				// 'https://amrorbackend-uvt9.onrender.com/report',
@@ -112,8 +117,8 @@ const MonthlyAnalytics = () => {
 			)
 			const jsonData = await data.json()
 			console.log(jsonData.report)
-			if (!jsonData) {
-				alert('No Data Found')
+			if (jsonData.report === undefined) {
+				alert('Data Not Found')
 				return
 			} else {
 				setReport(jsonData.report)
