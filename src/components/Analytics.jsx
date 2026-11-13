@@ -1,138 +1,172 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { BarChart, HorizontalBarGraph } from './Charts'
 import { month } from './data'
 import * as XLSX from 'xlsx'
 
+const API = 'https://amrorbackend-uvt9.onrender.com'
+
+// Reports from October 2024 onwards are stored with Lab IDs (/updated-report);
+// earlier reports use the old patient_id system (/report).
+const usesLabIdSystem = (selmonth, selyear) => {
+	const y = Number(selyear)
+	return (
+		(y === 2024 && ['October', 'November', 'December'].includes(selmonth)) ||
+		y > 2024
+	)
+}
+
+// Columns in the downloaded Excel, in order.
+// lab_id is the sample's Lab ID (new system); hospital_id / specimen_id are only
+// filled for old reports. ID columns that are empty for every row are dropped.
+const COLUMNS = [
+	'lab_id',
+	'hospital_id',
+	'specimen_id',
+	'patient_name',
+	'father_name',
+	'village_name',
+	'patient_age',
+	'gender',
+	'patient_mobile',
+	'direct_microscopic_examination',
+	'culture_results',
+	'comments',
+	'note',
+	'report_date',
+	'reporter_name',
+	'reporter_designation',
+	'month',
+	'year',
+	'location',
+	'clinical_ho',
+	'provisional_diagnosis',
+	'antibiotics_given',
+	'specimen_nature',
+	'specimen_source',
+	'collection_date',
+	'collection_time',
+	'illness_duration',
+	'investigation_required',
+	'admission_date',
+	'physician_name',
+]
+const OPTIONAL_ID_COLUMNS = ['lab_id', 'hospital_id', 'specimen_id']
+
 const MonthlyAnalytics = () => {
-	// Sample data structure
 	const [monthlyData, setMonthlyData] = useState([])
 	const [data, setData] = useState({})
-	const [report, setReport] = useState({})
+	const [report, setReport] = useState([])
 	const [selmonth, setMonth] = useState('')
 	const y = new Date()
 	const [selyear, setYear] = useState(y.getFullYear())
-	const [ready, setReady] = useState(false)
+	const [loading, setLoading] = useState(false)
+	const [message, setMessage] = useState('')
 
-	const getReport = async () => {
-		// Example data object
-		// Flattening AST and concatenating the results into a single row
-		const flattenedData = report.map((record) => {
-			const baseRecord = {
-				hospital_id: record.hospital_id,
-				patient_name: record.patient_name,
-				father_name: record.father_name,
-				village_name: record.village_name,
-				patient_age: record.patient_age,
-				gender: record.gender,
-				patient_mobile: record.patient_mobile,
-				direct_microscopic_examination: record.direct_microscopic_examination,
-				culture_results: record.culture_results,
-				comments: record.comments,
-				note: record.note,
-				report_date: record.report_date,
-				reporter_name: record.reporter_name,
-				reporter_designation: record.reporter_designation,
-				month: record.month,
-				year: record.year,
-				location: record.location,
-				clinical_ho: record.clinical_ho,
-				provisional_diagnosis: record.provisional_diagnosis,
-				antibiotics_given: record.antibiotics_given,
-				specimen_nature: record.specimen_nature,
-				specimen_source: record.specimen_source,
-				collection_date: record.collection_date,
-				collection_time: record.collection_time,
-				illness_duration: record.illness_duration,
-				investigation_required: record.investigation_required,
-				admission_date: record.admission_date,
-				physician_name: record.physician_name,
-			}
+	const ready = monthlyData?.length > 0 && Object.keys(data || {}).length > 0
 
-			// Concatenate AST data for each record
-			const astConcatenated = record.ast
-				.map((astEntry) => {
-					return `Microbe: ${astEntry.Microbe}, Antibiotic: ${astEntry.Antibiotic}, Result: ${astEntry.Result}, Mic: ${astEntry.Mic}, Mic_result: ${astEntry.Mic_result}`
+	const getReport = () => {
+		if (!report.length) {
+			alert('There is nothing to download for this month.')
+			return
+		}
+		try {
+			const isBlank = (v) => v === undefined || v === null || v === ''
+			const columns = COLUMNS.filter(
+				(col) =>
+					!OPTIONAL_ID_COLUMNS.includes(col) ||
+					report.some((r) => !isBlank(r[col]))
+			)
+
+			const flattenedData = report.map((record) => {
+				const row = {}
+				columns.forEach((col) => {
+					row[col] = isBlank(record[col]) ? '' : record[col]
 				})
-				.join(' | ')
+				// Concatenate AST results into one cell (blank if none were recorded)
+				row.ast = (Array.isArray(record.ast) ? record.ast : [])
+					.map(
+						(astEntry) =>
+							`Microbe: ${astEntry.Microbe}, Antibiotic: ${astEntry.Antibiotic}, Result: ${astEntry.Result}, Mic: ${astEntry.Mic ?? ''}, Mic_result: ${astEntry.Mic_result ?? ''}`
+					)
+					.join(' | ')
+				return row
+			})
 
-			return { ...baseRecord, ast: astConcatenated }
-		})
-
-		const worksheet = XLSX.utils.json_to_sheet(flattenedData)
-		const workbook = XLSX.utils.book_new()
-		XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
-		//let buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
-		//XLSX.write(workbook, { bookType: "xlsx", type: "binary" });
-		let file = 'report' + selmonth + selyear.toString() + '.xlsx'
-		XLSX.writeFile(workbook, file)
+			const worksheet = XLSX.utils.json_to_sheet(flattenedData)
+			const workbook = XLSX.utils.book_new()
+			XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
+			XLSX.writeFile(workbook, 'report' + selmonth + String(selyear) + '.xlsx')
+		} catch (error) {
+			console.error('Excel export failed:', error)
+			alert('Sorry, the Excel file could not be created. Please try again.')
+		}
 	}
-	// Simulated API call to fetch monthly data
+
+	const postMonth = async (route) => {
+		const controller = new AbortController()
+		// Allow for Render waking the server up (can take about a minute)
+		const timer = setTimeout(() => controller.abort(), 90000)
+		try {
+			const response = await fetch(`${API}/${route}`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ month: selmonth, year: selyear }),
+				signal: controller.signal,
+			})
+			if (!response.ok) throw new Error(`Server returned ${response.status}`)
+			return await response.json()
+		} finally {
+			clearTimeout(timer)
+		}
+	}
+
 	const fetchMonthlyData = async () => {
-		//console.log(selmonth, selyear)
-		if (
-			(selyear > 2024 &&
-				(selmonth === 'October' ||
-					selmonth === 'November' ||
-					selmonth === 'December')) ||
-			selyear > 2025
-		) {
-			const data = await fetch(
-				// 'https://amrorbackend-uvt9.onrender.com/report',
-				'https://amrorbackend-uvt9.onrender.com/updated-report',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						month: selmonth,
-						year: selyear,
-					}),
-				}
-			)
-			const jsonData = await data.json()
-			//console.log(jsonData.data)
-			if (jsonData.report === undefined) {
-				alert('No Data Found')
-				return
-			} else {
-				setReport(jsonData.report)
-				setMonthlyData(jsonData.data)
-				setData(jsonData.micro)
+		if (!selmonth) {
+			setMessage('Please select a month first.')
+			return
+		}
+
+		setLoading(true)
+		setMessage(
+			'Loading… If the dashboard has not been used for a while, this can take up to a minute while the server wakes up.'
+		)
+		setReport([])
+		setMonthlyData([])
+		setData({})
+
+		try {
+			const primary = usesLabIdSystem(selmonth, selyear) ? 'updated-report' : 'report'
+			const secondary = primary === 'updated-report' ? 'report' : 'updated-report'
+
+			let jsonData = await postMonth(primary)
+			// Around the changeover month, check the other system before giving up
+			if (!Array.isArray(jsonData.report) || jsonData.report.length === 0) {
+				jsonData = await postMonth(secondary)
 			}
-		} else {
-			const data = await fetch(
-				// 'https://amrorbackend-uvt9.onrender.com/report',
-				'https://amrorbackend-uvt9.onrender.com/report',
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-					},
-					body: JSON.stringify({
-						month: selmonth,
-						year: selyear,
-					}),
-				}
-			)
-			const jsonData = await data.json()
-			console.log(jsonData.report)
-			if (jsonData.report === undefined) {
-				alert('Data Not Found')
+
+			const rows = Array.isArray(jsonData.report) ? jsonData.report : []
+			if (rows.length === 0) {
+				setMessage(`No culture reports found for ${selmonth} ${selyear}.`)
 				return
-			} else {
-				setReport(jsonData.report)
-				setMonthlyData(jsonData.data)
-				setData(jsonData.micro)
 			}
+
+			setReport(rows)
+			setMonthlyData(Array.isArray(jsonData.data) ? jsonData.data : [])
+			setData(jsonData.micro || {})
+			setMessage(
+				`${rows.length} culture report${rows.length === 1 ? '' : 's'} found for ${selmonth} ${selyear}.`
+			)
+		} catch (error) {
+			console.error('Monthly report failed:', error)
+			setMessage(
+				error.name === 'AbortError'
+					? 'The server took too long to respond. Please click Check again.'
+					: 'Could not load the report (the server may still be waking up). Please wait a few seconds and click Check again.'
+			)
+		} finally {
+			setLoading(false)
 		}
 	}
-	useEffect(() => {
-		if (monthlyData?.length > 0 && Object.keys(data)?.length > 0) {
-			//console.log(monthlyData)
-			setReady(true)
-		}
-	}, [monthlyData, data])
 
 	return (
 		<div className="mt-10 mx-5 bg-white p-5 rounded-sm">
@@ -166,22 +200,26 @@ const MonthlyAnalytics = () => {
 				<button
 					id="submit-button"
 					onClick={fetchMonthlyData}
-					className="outline-none  rounded-lg px-5 py-3 bg-red-400 text-white text-lg">
-					Check
+					disabled={loading}
+					className="outline-none  rounded-lg px-5 py-3 bg-red-400 text-white text-lg disabled:opacity-60">
+					{loading ? 'Loading…' : 'Check'}
 				</button>
 			</div>
 
 			<h2>Monthly Report: Microorganism Analysis</h2>
+			{message && <p className="mt-3 text-gray-700">{message}</p>}
+			{report.length > 0 && (
+				<div>
+					<button
+						id="button"
+						onClick={getReport}
+						className="outline-none  rounded-lg px-5 py-3 bg-red-400 text-white text-lg">
+						Download Report
+					</button>
+				</div>
+			)}
 			{ready && (
 				<>
-					<div>
-						<button
-							id="button"
-							onClick={getReport}
-							className="outline-none  rounded-lg px-5 py-3 bg-red-400 text-white text-lg">
-							Download Report
-						</button>
-					</div>
 					<HorizontalBarGraph data={data} />
 					{monthlyData.map((microbe, index) => {
 						return <BarChart data={microbe} key={index} />
