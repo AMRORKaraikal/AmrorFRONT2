@@ -3,6 +3,7 @@ import img1 from './jipmer.jpg'
 import img3 from './AmrorLogo.png'
 import { jsPDF } from 'jspdf'
 import * as bwips from 'bwip-js'
+import { formatDateIST, wrapText } from './printHelpers'
 
 const pdfDoc = new jsPDF('p', 'px', 'a4') // Setting PDF dimensions to A4 size
 const NewPdf = ({ reportData, specimenData, patientData }) => {
@@ -183,7 +184,14 @@ const NewPdf = ({ reportData, specimenData, patientData }) => {
 		ctx.font = 'bold 10px Times New Roman '
 		ctx.fillText('JIPMER KARAIKAL', 25, 105 + 12)
 		ctx.font = ' 16px Times New Roman ' //font
-		var y2 = 470
+		// Wrap long microscopy text so it stays on the page and clear of the
+		// barcode (which starts at x = 622 on this canvas); everything below it
+		// moves down by the extra lines.
+		ctx.font = '14px Times New Roman'
+		const dmeLines = wrapText(ctx, direct_microscopic_examination, 550)
+		const extra = (dmeLines.length - 1) * 15
+		ctx.font = ' 16px Times New Roman ' //font
+		var y2 = 470 + extra
 		Object.keys(microbeMap).forEach((microbe) => {
 			const results = microbeMap[microbe]
 
@@ -266,8 +274,8 @@ const NewPdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Specimen Details', x3, y1)
 		ctx.fillText('Clinical Details', x2, y1)
 		ctx.fillText('Direct Microscopic Examination:', x4, y1 + 220)
-		ctx.fillText('Culture Results:', x4, y1 + 255)
-		ctx.fillText('Antimicrobial Susceptibility Test:', x4, y1 + 310)
+		ctx.fillText('Culture Results:', x4, y1 + 255 + extra)
+		ctx.fillText('Antimicrobial Susceptibility Test:', x4, y1 + 310 + extra)
 		ctx.fillText('Comments:', x4, y2)
 
 		ctx.font = '14px Times New Roman'
@@ -313,7 +321,7 @@ const NewPdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Duration of Illness:', x2, y1 + 140)
 		ctx.fillText(illness_duration, x2 + 113, y1 + 140) //duration
 		ctx.fillText('Date of Admission:', x2, y1 + 160)
-		ctx.fillText(admission_date.slice(0, 10), x2 + 113, y1 + 160)
+		ctx.fillText(formatDateIST(admission_date), x2 + 113, y1 + 160)
 		ctx.fillText('Name of the Physician:', x2, y1 + 180)
 		ctx.fillText(physician_name, x2 + 50, y1 + 195) //physician name
 		//second col
@@ -323,22 +331,24 @@ const NewPdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Specimen Source / Body Site:', x3, y1 + 80)
 		ctx.fillText(specimen_source, x3 + 3, y1 + 95) //site
 		ctx.fillText('Date of Collection:', x3, y1 + 120)
-		ctx.fillText(collection_date.slice(0, 10), x3 + 113, y1 + 120) //date
+		ctx.fillText(formatDateIST(collection_date), x3 + 113, y1 + 120) //date
 		ctx.fillText('Time of Collection:', x3, y1 + 140)
 		ctx.fillText(collection_time, x3 + 113, y1 + 140) //time
 		ctx.fillText('Investigation Required:', x3, y1 + 160)
 		ctx.fillText(investigation_required, x3 + 53, y1 + 175) //investigation
 
 		//two major comp
-		ctx.fillText(direct_microscopic_examination, 60, y1 + 233) //direct
+		dmeLines.forEach((line, i) => {
+			ctx.fillText(line, 60, y1 + 233 + i * 15) //direct
+		})
 		if (culture_results) {
 			if (culture_results.includes('.')) {
 				var culture_results_list = culture_results.split('.')
 				for (let i = 0; i < culture_results_list.length; i++) {
-					ctx.fillText(culture_results_list[i], 60, y1 + 268 + i * 15) //culture
+					ctx.fillText(culture_results_list[i], 60, y1 + 268 + extra + i * 15) //culture
 				}
 			} else {
-				ctx.fillText(culture_results, 60, y1 + 328) //culture
+				ctx.fillText(culture_results, 60, y1 + 328 + extra) //culture
 			}
 		}
 
@@ -406,7 +416,8 @@ const NewPdf = ({ reportData, specimenData, patientData }) => {
 			// Iterate over the words array and group them into strings containing 20 words each
 			for (let i = 0; i < words2.length; i += 10) {
 				let chunk = words2.slice(i, i + 10)
-				result2.push(chunk.join(' '))
+				// keep the usual 10 words per line, but wrap a line that is too wide
+				result2.push(...wrapText(ctx, chunk.join(' '), 650))
 			}
 
 			// console.log(result2)
@@ -425,7 +436,7 @@ const NewPdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Designation:', x4, y2 + 100)
 		ctx.fillText('Signature:', x4, y2 + 120)
 		ctx.font = ' 14px Times New Roman ' //font
-		ctx.fillText(report_date.slice(0, 10), x5 + 10, y2 + 60) // report date
+		ctx.fillText(formatDateIST(report_date), x5 + 10, y2 + 60) // report date
 		ctx.fillText(reporter_name, x5 + 10, y2 + 80) //name
 		ctx.fillText(reporter_designation, x5 + 10, y2 + 100) //designation
 		const pdfDataURL = canvas.toDataURL()
@@ -456,7 +467,7 @@ const NewPdf = ({ reportData, specimenData, patientData }) => {
 			<button
 				className="mt-5 ml-5 outline rounded-md px-4 py-2 bg-blue-400 text-white text-lg"
 				onClick={() => {
-					pdfDoc.save(`${specimenData.patient_id}.pdf`)
+					pdfDoc.save(`${patientData.lab_id}.pdf`)
 				}}>
 				Download
 			</button>

@@ -6,7 +6,10 @@ import NewPdf from '../NewPdf.jsx'
 import NewPdf1 from '../NewPdf1'
 function PatientHistory() {
 	const [patient_id, setPatientId] = useState('')
-	const [lab_id, setLabId] = useState(localStorage.getItem('barcode') | '')
+	const [lab_id, setLabId] = useState(() => {
+		const stored = localStorage.getItem('barcode')
+		return stored && stored !== 'undefined' ? stored : ''
+	})
 	const [sample_id, setSample_Id] = useState('')
 
 	const [patientData, setPatientData] = useState()
@@ -69,7 +72,7 @@ function PatientHistory() {
 				}
 			)
 			const result = await response.json()
-			if (result.success && result.report !== null) {
+			if (result.success && result.patientData && result.specimenData) {
 				setSpecimenData(result.specimenData)
 				setPatientData(result.patientData)
 				setReport(result.report)
@@ -82,7 +85,7 @@ function PatientHistory() {
 				// setPatient_id(result.patientData.patient_id)
 			} else {
 				console.log('Error')
-				alert('Report Does not exist')
+				alert('No Request Form found for this Lab ID')
 			}
 		} catch (errror) {
 			alert('Failed to fetch report!!!')
@@ -146,7 +149,12 @@ function PatientHistory() {
 			)
 			const result = await response.json()
 			console.log(result)
-			if (result.success && result.report !== null) {
+			if (
+				result.success &&
+				result.report &&
+				result.patientData &&
+				result.specimenData
+			) {
 				setSpecimenData(result.specimenData)
 				setPatientData(result.patientData)
 				setReport(result.report)
@@ -234,12 +242,8 @@ function PatientHistory() {
 						<div className="flex flex-col">
 							<label className="text-sm text-gray-600">Scan</label>
 							<input
-								// id="lab-id"
 								type="text"
-								// onChange={(e) => {
-								// 	setPatientId(e.target.value.split(' ')[0])
-								// 	setSample_Id(e.target.value.split(' ')[1])
-								// }}
+								onChange={(e) => setLabId(e.target.value.trim())}
 								placeholder="scan barcode"
 								className="p-2 border border-gray-300 rounded-md"
 								required={true}

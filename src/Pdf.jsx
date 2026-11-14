@@ -3,6 +3,7 @@ import img1 from './jipmer.jpg'
 import img3 from './AmrorLogo.png'
 import { jsPDF } from 'jspdf'
 import * as bwips from 'bwip-js'
+import { formatDateIST } from './printHelpers'
 
 const pdfDoc = new jsPDF('p', 'px', 'a4') // Setting PDF dimensions to A4 size
 const Pdf = ({ reportData, specimenData, patientData }) => {
@@ -312,7 +313,7 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Duration of Illness:', x2, y1 + 140)
 		ctx.fillText(illness_duration, x2 + 113, y1 + 140) //duration
 		ctx.fillText('Date of Admission:', x2, y1 + 160)
-		ctx.fillText(admission_date.slice(0, 10), x2 + 113, y1 + 160)
+		ctx.fillText(formatDateIST(admission_date), x2 + 113, y1 + 160)
 		ctx.fillText('Name of the Physician:', x2, y1 + 180)
 		ctx.fillText(physician_name, x2 + 50, y1 + 195) //physician name
 		//second col
@@ -323,7 +324,7 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Specimen Source / Body Site:', x3, y1 + 80)
 		ctx.fillText(specimen_source, x3 + 3, y1 + 95) //site
 		ctx.fillText('Date of Collection:', x3, y1 + 120)
-		ctx.fillText(collection_date.slice(0, 10), x3 + 113, y1 + 120) //date
+		ctx.fillText(formatDateIST(collection_date), x3 + 113, y1 + 120) //date
 		ctx.fillText('Time of Collection:', x3, y1 + 140)
 		ctx.fillText(collection_time, x3 + 113, y1 + 140) //time
 		ctx.fillText('Investigation Required:', x3, y1 + 160)
@@ -426,7 +427,7 @@ const Pdf = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Designation:', x4, y2 + 100)
 		ctx.fillText('Signature:', x4, y2 + 120)
 		ctx.font = ' 14px Times New Roman ' //font
-		ctx.fillText(report_date.slice(0, 10), x5 + 10, y2 + 60) // report date
+		ctx.fillText(formatDateIST(report_date), x5 + 10, y2 + 60) // report date
 		ctx.fillText(reporter_name, x5 + 10, y2 + 80) //name
 		ctx.fillText(reporter_designation, x5 + 10, y2 + 100) //designation
 		const pdfDataURL = canvas.toDataURL()

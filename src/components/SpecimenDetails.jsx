@@ -31,7 +31,7 @@ const SpecimenDetails = () => {
 	const [newMicrobe2, setNewMicrobe2] = useState('')
 	const [antibiotic, setAntibiotic] = useState(antibiotic_list[0])
 	const [newAntibiotic, setNewAntibiotic] = useState('')
-	const [result, setResult] = useState('Resistant')
+	const [result, setResult] = useState('')
 	const [notes, setNotes] = useState('')
 	const [reportDate, setReportDate] = useState(new Date())
 	const [submitting, setSubmitting] = useState(false)
@@ -43,15 +43,45 @@ const SpecimenDetails = () => {
 	const [table3, setTable3] = useState([])
 	const [table4, setTable4] = useState([])
 
-	const [patient_id, setPatient_id] = useState(
-		localStorage.getItem('barcode') || ''
-	)
+	const [patient_id, setPatient_id] = useState(() => {
+		const stored = localStorage.getItem('barcode')
+		return stored && stored !== 'undefined' ? stored : ''
+	})
 
 	const [micVal, setMicVal] = useState('')
 	const [micResult, setMicResult] = useState('')
 	const [commentsList, setCommentsList] = useState([])
 	const [comments, setComments] = useState('')
 	const [comment1, setComment1] = useState('')
+
+	// Empty every result field, so one patient's results can never be carried
+	// over to the next Lab ID.
+	const clearResults = () => {
+		setTable([])
+		setTable2([])
+		setTable3([])
+		setTable4([])
+		setDirectMicroscopicExamination('')
+		setCultureResult('')
+		setComments('')
+		setNotes('')
+		setMicrobe(microbes_list[0])
+		setNewMicrobe('')
+		setAntibiotic(antibiotic_list[0])
+		setNewAntibiotic('')
+		setResult('')
+		setMicVal('')
+		setMicResult('')
+		setDirectSmear(dropDown1[0])
+		setDSNote('')
+		setMicrobe2(microbes_list[0])
+		setNewMicrobe2('')
+		setGrowthTime(dropDown2[0])
+		setMicrobe3('others')
+		setNewMicrobe3('')
+		setComment1('')
+		setNewComment('')
+	}
 
 	const getDetails = async (e) => {
 		e.preventDefault()
@@ -77,12 +107,27 @@ const SpecimenDetails = () => {
 			)
 			const result = await response.json()
 			//console.log(result)
-			if (result.success) {
+			if (result.success && result.patientData && result.specimenData) {
+				// A different patient: start with empty result fields
+				if (
+					patientData?.lab_id &&
+					patientData.lab_id !== result.patientData.lab_id
+				) {
+					clearResults()
+				}
 				setSpecimenData(result.specimenData)
 				setPatientData(result.patientData)
 				setDetails(true)
-				// console.log(result.patientData.lab_id)
-				// setPatient_id(result.patientData.patient_id)
+			} else {
+				// Lab ID not found: show a message instead of a blank page
+				setDetails(false)
+				setPatientData(undefined)
+				setSpecimenData(undefined)
+				alert(
+					!result.success && result.message
+						? result.message
+						: `No Request Form found for Lab ID ${patient_id}.`
+				)
 			}
 		} catch (errror) {
 			alert('Failed to fetch report!!!')
@@ -135,6 +180,13 @@ const SpecimenDetails = () => {
 
 			if (result.success) {
 				alert(result.message)
+				// Saved: empty the form so the next report starts clean and needs
+				// its own Lab ID to be checked.
+				clearResults()
+				setDetails(false)
+				setPatientData(undefined)
+				setSpecimenData(undefined)
+				setPatient_id('')
 			} else {
 				alert('Submit Failed, try again')
 				console.error(result.message)
@@ -152,8 +204,12 @@ const SpecimenDetails = () => {
 
 	const handleAdd = (e) => {
 		e.preventDefault()
-		if (microbe === '' || antibiotic === '' || result === '') {
+		if (microbe === '' || antibiotic === '') {
 			alert('Value missing\nSelect the dropdown menu')
+		} else if (result === '' && micResult === '') {
+			alert(
+				'Select the Disc Diffusion result (or the MIC interpretation) before adding'
+			)
 		} else {
 			let m1, a1, r1, snum, mic1, micres
 			if (microbe === 'other') {
@@ -175,7 +231,7 @@ const SpecimenDetails = () => {
 			console.log(micResult)
 			// setMicrobe(microbes_list[0])
 			setAntibiotic(antibiotic_list[0])
-			setResult('Resistant')
+			setResult('')
 
 			let maxi = table.length
 
@@ -546,6 +602,7 @@ const SpecimenDetails = () => {
 								<input
 									id="patient-id"
 									type="text"
+									value={patient_id}
 									onChange={(e) => {
 										setPatient_id(e.target.value)
 									}}
@@ -809,6 +866,7 @@ const SpecimenDetails = () => {
 									className="w-24 mt-3 outline rounded-md"
 									value={result}
 									onChange={(e) => setResult(e.target.value)}>
+									<option value="">--select--</option>
 									<option value="Resistant">Resistant</option>
 									<option value="SDD">SDD</option>
 									<option value="Intermediate">Intermediate</option>

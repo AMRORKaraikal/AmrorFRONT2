@@ -3,12 +3,14 @@ import img1 from './jipmer.jpg'
 import img3 from './AmrorLogo.png'
 import { jsPDF } from 'jspdf'
 import * as bwips from 'bwip-js'
+import { formatDateIST } from './printHelpers'
 const NewPdf1 = ({ reportData, specimenData, patientData }) => {
 	const canvasRef = useRef(null)
 	const canvasRef2 = useRef(null)
 	const canvasRef3 = useRef(null)
 	const canvasRef4 = useRef(null)
-	const data = specimenData.patient_id + ' ' + specimenData.specimen_id
+	// The barcode carries the Lab ID (the same value the forms scan)
+	const data = String(patientData.lab_id)
 	// //console.log(reportData, specimenData, patientData)
 	const pdfDoc = new jsPDF('p', 'px', 'a4') // Setting PDF dimensions to A4 size
 
@@ -201,7 +203,7 @@ const NewPdf1 = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Duration of Illness:', x2, y1 + 140)
 		ctx.fillText(illness_duration, x2 + 113, y1 + 140) //duration
 		ctx.fillText('Date of Admission:', x2, y1 + 160)
-		ctx.fillText(admission_date.slice(0, 10), x2 + 113, y1 + 160)
+		ctx.fillText(formatDateIST(admission_date), x2 + 113, y1 + 160)
 		ctx.fillText('Name of the Physician:', x2, y1 + 180)
 		ctx.fillText(physician_name, x2 + 50, y1 + 195) //physician name
 		//second col
@@ -211,7 +213,7 @@ const NewPdf1 = ({ reportData, specimenData, patientData }) => {
 		ctx.fillText('Specimen Source / Body Site:', x3, y1 + 80)
 		ctx.fillText(specimen_source, x3 + 113, y1 + 95) //site
 		ctx.fillText('Date of Collection:', x3, y1 + 120)
-		ctx.fillText(collection_date.slice(0, 10), x3 + 113, y1 + 120) //date
+		ctx.fillText(formatDateIST(collection_date), x3 + 113, y1 + 120) //date
 		ctx.fillText('time of Collection:', x3, y1 + 140)
 		ctx.fillText(collection_time, x3 + 113, y1 + 140) //time
 		ctx.fillText('Investigation Required:', x3, y1 + 160)
@@ -244,7 +246,7 @@ const NewPdf1 = ({ reportData, specimenData, patientData }) => {
 			<button
 				className="mt-5 ml-5 outline rounded-md px-4 py-2 bg-blue-400 text-white text-lg"
 				onClick={() => {
-					pdfDoc.save(`${specimenData.patient_id}.pdf`)
+					pdfDoc.save(`${patientData.lab_id}.pdf`)
 				}}>
 				Download
 			</button>

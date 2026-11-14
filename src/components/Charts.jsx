@@ -1,50 +1,35 @@
 import { Bar } from 'react-chartjs-2'
-import { Tooltip, Chart as chartJs } from 'chart.js'
+import { Tooltip, Legend, Chart as chartJs } from 'chart.js'
 import { CategoryScale, LinearScale, BarElement } from 'chart.js'
 const BarChart = ({ data }) => {
-	chartJs.register(CategoryScale, LinearScale, BarElement, Tooltip)
+	chartJs.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
 	const antibiotics = Object.keys(data.Antibiotics)
-	const resistantCounts = []
-	const sensitiveCounts = []
-	const semiResistantCounts = []
-
-	antibiotics.forEach((antibiotic) => {
-		const resistantCount = data.Antibiotics[antibiotic].filter(
-			(resistance) => resistance === 'Resistant'
-		).length
-		const sensitiveCount = data.Antibiotics[antibiotic].filter(
-			(resistance) => resistance === 'Sensitive'
-		).length
-		const semiResistantCount = data.Antibiotics[antibiotic].filter(
-			(resistance) => resistance === 'Semi-Resistant'
-		).length
-
-		resistantCounts.push(resistantCount)
-		sensitiveCounts.push(sensitiveCount)
-		semiResistantCounts.push(semiResistantCount)
-	})
+	// Every result the Culture Report Form can record gets its own colour.
+	// ('Semi-Resistant' is an older name for Intermediate.)
+	const groups = [
+		{ label: 'Resistant', match: ['Resistant'], color: 'rgba(255, 99, 132, 0.6)' },
+		{
+			label: 'Intermediate',
+			match: ['Intermediate', 'Semi-Resistant'],
+			color: 'rgba(255, 206, 86, 0.6)',
+		},
+		{ label: 'SDD', match: ['SDD'], color: 'rgba(153, 102, 255, 0.6)' },
+		{ label: 'Sensitive', match: ['Sensitive'], color: 'rgba(54, 162, 235, 0.6)' },
+	]
 
 	// Stacked bar chart data
 	const chartData = {
 		labels: antibiotics,
-		datasets: [
-			{
-				label: 'Resistant',
-				data: resistantCounts,
-				backgroundColor: 'rgba(255, 99, 132, 0.6)',
-			},
-			{
-				label: 'Sensitive',
-				data: sensitiveCounts,
-				backgroundColor: 'rgba(54, 162, 235, 0.6)',
-			},
-			{
-				label: 'Semi-Resistant',
-				data: semiResistantCounts,
-				backgroundColor: 'rgba(255, 206, 86, 0.6)',
-			},
-		],
+		datasets: groups.map((group) => ({
+			label: group.label,
+			data: antibiotics.map(
+				(antibiotic) =>
+					data.Antibiotics[antibiotic].filter((r) => group.match.includes(r))
+						.length
+			),
+			backgroundColor: group.color,
+		})),
 	}
 
 	// Chart options

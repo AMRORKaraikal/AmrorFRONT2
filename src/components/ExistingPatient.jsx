@@ -24,6 +24,8 @@ const ExistingPatient = () => {
 	const [investigation_required, setInvestigation_Required] = useState('')
 	const [physician_name, setPhysician_Name] = useState('')
 	const [isPrevData, setIsPrevData] = useState(false)
+	const [submitting, setSubmitting] = useState(false)
+	const submittingRef = useRef(false)
 
 	const [qrdata, setQrData] = useState('')
 	const [showQr, setShowQr] = useState(false)
@@ -61,16 +63,47 @@ const ExistingPatient = () => {
 			admission_date: admissionDate,
 			physician_name: physician_name,
 		}
+		// Every field the server needs. Checked here so the user is told exactly
+		// what is missing instead of the form failing without a message.
+		const required = [
+			['Lab ID', patientData.lab_id],
+			['Patient Name', patientData.patient_name],
+			['Village/Town', patientData.village_name],
+			['Patient Age', patientData.patient_age],
+			['Gender', patientData.gender],
+			['Mobile Number', patientData.patient_mobile],
+			['Clinical H/O', clinical_ho],
+			['Provisional Diagnosis', provisional_diagnosis],
+			['Antibiotics Given', antibiotics_given],
+			['Specimen Source/Body site', specimen_source],
+			['Date of collection', collectionDate],
+			['Time of collection', collection_time],
+			['Duration of illness', illness_duration],
+			['Date of admission', admissionDate],
+			['Name of the Physician/Nurse', physician_name],
+		]
+		const missing = required
+			.filter(([, v]) => v === undefined || v === null || String(v).trim() === '')
+			.map(([label]) => label)
+		if (missing.length > 0) {
+			alert(
+				'Please fill in:\n' +
+					missing.join('\n') +
+					'\n\nIf something does not apply, enter "-" (or 0 for the mobile number).'
+			)
+			return
+		}
+
+		if (submittingRef.current) return
+		submittingRef.current = true
+		setSubmitting(true)
+		// Hide the previous barcode until this form is saved
+		setShowQr(false)
 		try {
-			// if (!hospital_id || !patient_name || !father_name || !village_name || !patient_age || !patient_mobile) {
-			//     alert("Enter all the details")
-			//     return;
-			// }
 			if (isPrevData) {
 				setPatient_Id(patientData.patient_id)
 				await fetch(
 					'https://amrorbackend-uvt9.onrender.com/existing-specimen-register',
-					// 'https://amrorbackend-uvt9.onrender.com/existing-specimen-register',
 					{
 						method: 'POST',
 						headers: {
@@ -83,10 +116,7 @@ const ExistingPatient = () => {
 					}
 				)
 			} else {
-				//console.log({ patientData })
-
 				const response = await fetch(
-					// 'https://amrorbackend-uvt9.onrender.com/new-specimen',
 					'https://amrorbackend-uvt9.onrender.com/new-specimen',
 					{
 						method: 'POST',
@@ -100,17 +130,31 @@ const ExistingPatient = () => {
 					}
 				)
 				const result = await response.json()
-				setPatient_Id(result.lab_id)
+				if (result.success && result.lab_id) {
+					// Saved: show the barcode for this Lab ID
+					setPatient_Id(result.lab_id)
+					setQrData(result.lab_id)
+					setShowQr(true)
+				} else {
+					alert(
+						result.message ||
+							'The Request Form was not saved. Please press Submit again.'
+					)
+				}
 			}
-
-			// const result = await response.json()
-
-			// //console.log(result)
 		} catch (error) {
-			//console.log(error)
+			console.error('Request Form save failed:', error)
+			alert(
+				'The Request Form was not saved (the server could not be reached). Please wait a few seconds and press Submit again.'
+			)
+		} finally {
+			submittingRef.current = false
+			setSubmitting(false)
 		}
 	}
 	useEffect(() => {
+		// Only after a Request Form has actually been saved
+		if (!patient_id) return
 		const tem = patient_id
 		setQrData(tem)
 		localStorage.setItem('barcode', tem)
@@ -613,8 +657,9 @@ const ExistingPatient = () => {
 								<button
 									className="bg-red-500 w-[20%]  text-white py-2 px-4 rounded"
 									type="submit"
+									disabled={submitting}
 									onClick={submitNewSpecimen}>
-									Submit
+									{submitting ? 'Saving…' : 'Submit'}
 								</button>
 							</div>
 						</form>
@@ -622,7 +667,10 @@ const ExistingPatient = () => {
 				}
 			</div>
 			{showQr && (
-				<div className="mt-3 text-2xl  border-solid border-black border-3 w-[35vw] h-[35vh] flex justify-center items-center">
+				<div className="mt-3 text-2xl  border-solid border-black border-3 w-[35vw] h-[35vh] flex flex-col justify-center items-center">
+					<p className="text-base mb-2">
+						Request Form saved for Lab ID {qrdata}
+					</p>
 					{<QRCodePrint data={qrdata} />}
 				</div>
 			)}

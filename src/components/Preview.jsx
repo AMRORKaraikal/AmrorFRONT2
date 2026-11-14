@@ -7,7 +7,7 @@ const Preview = ({ patientData, SpecimenData }) => {
 		patient_age,
 		gender,
 		patient_mobile,
-	} = patientData
+	} = patientData || {}
 	const {
 		specimen_nature,
 		specimen_source,
@@ -20,7 +20,7 @@ const Preview = ({ patientData, SpecimenData }) => {
 		clinical_ho,
 		provisional_diagnosis,
 		antibiotics_given,
-	} = SpecimenData
+	} = SpecimenData || {}
 	return (
 		<div className="flex w-full justify-evenly">
 			<div className="flex flex-col space-y-2 w-[32em]">
