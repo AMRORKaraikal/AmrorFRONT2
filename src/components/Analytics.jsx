@@ -52,6 +52,23 @@ const COLUMNS = [
 ]
 const OPTIONAL_ID_COLUMNS = ['lab_id', 'hospital_id', 'specimen_id']
 
+// Dates are stored in UTC; show them as Indian dates (DD/MM/YYYY) so a sample
+// collected on 28 Jan doesn't appear as "2026-01-27T18:30:00.000Z".
+const DATE_COLUMNS = ['collection_date', 'admission_date']
+const DATETIME_COLUMNS = ['report_date']
+const formatIST = (value, withTime) => {
+	const d = new Date(value)
+	if (!value || isNaN(d.getTime())) return value ?? ''
+	const opts = {
+		timeZone: 'Asia/Kolkata',
+		day: '2-digit',
+		month: '2-digit',
+		year: 'numeric',
+		...(withTime ? { hour: '2-digit', minute: '2-digit', hour12: false } : {}),
+	}
+	return d.toLocaleString('en-GB', opts).replace(',', '')
+}
+
 const MonthlyAnalytics = () => {
 	const [monthlyData, setMonthlyData] = useState([])
 	const [data, setData] = useState({})
@@ -80,7 +97,11 @@ const MonthlyAnalytics = () => {
 			const flattenedData = report.map((record) => {
 				const row = {}
 				columns.forEach((col) => {
-					row[col] = isBlank(record[col]) ? '' : record[col]
+					const v = record[col]
+					if (isBlank(v)) row[col] = ''
+					else if (DATE_COLUMNS.includes(col)) row[col] = formatIST(v, false)
+					else if (DATETIME_COLUMNS.includes(col)) row[col] = formatIST(v, true)
+					else row[col] = v
 				})
 				// Concatenate AST results into one cell (blank if none were recorded)
 				row.ast = (Array.isArray(record.ast) ? record.ast : [])

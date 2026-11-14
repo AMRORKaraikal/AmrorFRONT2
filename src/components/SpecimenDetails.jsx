@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import DatePicker from 'react-date-picker'
 import {
 	microbes_list,
@@ -34,6 +34,8 @@ const SpecimenDetails = () => {
 	const [result, setResult] = useState('Resistant')
 	const [notes, setNotes] = useState('')
 	const [reportDate, setReportDate] = useState(new Date())
+	const [submitting, setSubmitting] = useState(false)
+	const submittingRef = useRef(false)
 	const [reporterName, setReporterName] = useState('')
 	const [reporterDesignation, setReporterDesignation] = useState('')
 	const [table, setTable] = useState([])
@@ -94,56 +96,58 @@ const SpecimenDetails = () => {
 		e.preventDefault()
 		//console.log('table: ', table)
 
-		setTimeout(() => {}, 5000)
-		// Wait for a brief moment to activate the camera
-		setTimeout(async () => {
-			// Inside this block, the camera is active
-			// setPatient_id(patientData.patient_id)
-			//console.log(patient_id)
-			// //console.log(patient_id)
-			//console.log(specimen_id)
-			try {
-				const report_data = {
-					lab_id: patientData.lab_id,
-					direct_microscopic_examination: directMicroscopicExamination,
-					culture_results: cultureResult,
-					ast: table,
-					comments: comments,
-					note: notes,
-					report_date: reportDate,
-					reporter_name: reporterName,
-					reporter_designation: reporterDesignation,
-				}
-				//console.log(patient_id, specimen_id, report_data)
-				const response = await fetch(
-					'https://amrorbackend-uvt9.onrender.com/new-report',
-					{
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-						},
-						body: JSON.stringify({
-							report_data: report_data,
-						}),
-					}
-				)
-
-				const result = await response.json()
-
-				if (result.success) {
-					alert(result.message)
-				} else {
-					alert('Submit Failed, try again')
-					console.error(result.message)
-					return
-				}
-			} catch (error) {
-				console.error('Error during form submission:', error)
-				alert('An error occurred during submission. Please try again.')
-				return
-			} finally {
+		// Ignore extra clicks while a report is being saved (each click used to
+		// save another copy of the report).
+		if (submittingRef.current) return
+		if (!patientData?.lab_id) {
+			alert('Enter the Lab ID and press Check to load the patient first.')
+			return
+		}
+		submittingRef.current = true
+		setSubmitting(true)
+		try {
+			const report_data = {
+				lab_id: patientData.lab_id,
+				direct_microscopic_examination: directMicroscopicExamination,
+				culture_results: cultureResult,
+				ast: table,
+				comments: comments,
+				note: notes,
+				report_date: reportDate,
+				reporter_name: reporterName,
+				reporter_designation: reporterDesignation,
 			}
-		}, 10000)
+			//console.log(patient_id, specimen_id, report_data)
+			const response = await fetch(
+				'https://amrorbackend-uvt9.onrender.com/new-report',
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({
+						report_data: report_data,
+					}),
+				}
+			)
+
+			const result = await response.json()
+
+			if (result.success) {
+				alert(result.message)
+			} else {
+				alert('Submit Failed, try again')
+				console.error(result.message)
+				return
+			}
+		} catch (error) {
+			console.error('Error during form submission:', error)
+			alert('An error occurred during submission. Please try again.')
+			return
+		} finally {
+			submittingRef.current = false
+			setSubmitting(false)
+		}
 	}
 
 	const handleAdd = (e) => {
@@ -1047,8 +1051,9 @@ const SpecimenDetails = () => {
 						<button
 							id="submit-button"
 							onClick={handleSubmit}
-							className="outline-none rounded-lg px-5 py-3 bg-red-400 text-white text-lg">
-							Submit
+							disabled={submitting}
+							className="outline-none rounded-lg px-5 py-3 bg-red-400 text-white text-lg disabled:opacity-60">
+							{submitting ? 'Saving…' : 'Submit'}
 						</button>
 					</div>
 				</form>
