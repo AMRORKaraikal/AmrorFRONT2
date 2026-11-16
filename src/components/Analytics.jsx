@@ -69,6 +69,35 @@ const formatIST = (value, withTime) => {
 	return d.toLocaleString('en-GB', opts).replace(',', '')
 }
 
+// Turn report records into Excel rows (one row per report).
+const toSheetRows = (records) => {
+	const isBlank = (v) => v === undefined || v === null || v === ''
+	const columns = COLUMNS.filter(
+		(col) =>
+			!OPTIONAL_ID_COLUMNS.includes(col) ||
+			records.some((r) => !isBlank(r[col]))
+	)
+
+	return records.map((record) => {
+		const row = {}
+		columns.forEach((col) => {
+			const v = record[col]
+			if (isBlank(v)) row[col] = ''
+			else if (DATE_COLUMNS.includes(col)) row[col] = formatIST(v, false)
+			else if (DATETIME_COLUMNS.includes(col)) row[col] = formatIST(v, true)
+			else row[col] = v
+		})
+		// Concatenate AST results into one cell (blank if none were recorded)
+		row.ast = (Array.isArray(record.ast) ? record.ast : [])
+			.map(
+				(astEntry) =>
+					`Microbe: ${astEntry.Microbe}, Antibiotic: ${astEntry.Antibiotic}, Result: ${astEntry.Result}, Mic: ${astEntry.Mic ?? ''}, Mic_result: ${astEntry.Mic_result ?? ''}`
+			)
+			.join(' | ')
+		return row
+	})
+}
+
 const MonthlyAnalytics = () => {
 	const [monthlyData, setMonthlyData] = useState([])
 	const [data, setData] = useState({})
@@ -78,6 +107,8 @@ const MonthlyAnalytics = () => {
 	const [selyear, setYear] = useState(y.getFullYear())
 	const [loading, setLoading] = useState(false)
 	const [message, setMessage] = useState('')
+	const [downloadingAll, setDownloadingAll] = useState(false)
+	const [allMessage, setAllMessage] = useState('')
 
 	const ready = monthlyData?.length > 0 && Object.keys(data || {}).length > 0
 
@@ -87,31 +118,7 @@ const MonthlyAnalytics = () => {
 			return
 		}
 		try {
-			const isBlank = (v) => v === undefined || v === null || v === ''
-			const columns = COLUMNS.filter(
-				(col) =>
-					!OPTIONAL_ID_COLUMNS.includes(col) ||
-					report.some((r) => !isBlank(r[col]))
-			)
-
-			const flattenedData = report.map((record) => {
-				const row = {}
-				columns.forEach((col) => {
-					const v = record[col]
-					if (isBlank(v)) row[col] = ''
-					else if (DATE_COLUMNS.includes(col)) row[col] = formatIST(v, false)
-					else if (DATETIME_COLUMNS.includes(col)) row[col] = formatIST(v, true)
-					else row[col] = v
-				})
-				// Concatenate AST results into one cell (blank if none were recorded)
-				row.ast = (Array.isArray(record.ast) ? record.ast : [])
-					.map(
-						(astEntry) =>
-							`Microbe: ${astEntry.Microbe}, Antibiotic: ${astEntry.Antibiotic}, Result: ${astEntry.Result}, Mic: ${astEntry.Mic ?? ''}, Mic_result: ${astEntry.Mic_result ?? ''}`
-					)
-					.join(' | ')
-				return row
-			})
+			const flattenedData = toSheetRows(report)
 
 			const worksheet = XLSX.utils.json_to_sheet(flattenedData)
 			const workbook = XLSX.utils.book_new()
@@ -120,6 +127,64 @@ const MonthlyAnalytics = () => {
 		} catch (error) {
 			console.error('Excel export failed:', error)
 			alert('Sorry, the Excel file could not be created. Please try again.')
+		}
+	}
+
+	// One Excel file with every report from the earliest one to today:
+	// a sheet for the Lab ID system and a sheet for the older system.
+	const downloadAllReports = async () => {
+		setDownloadingAll(true)
+		setAllMessage(
+			'Preparing the complete report… This can take a minute or two.'
+		)
+		const controller = new AbortController()
+		const timer = setTimeout(() => controller.abort(), 180000)
+		try {
+			const response = await fetch(`${API}/all-reports`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({}),
+				signal: controller.signal,
+			})
+			if (!response.ok) throw new Error(`Server returned ${response.status}`)
+			const json = await response.json()
+			const labIdReports = Array.isArray(json.labIdReports) ? json.labIdReports : []
+			const olderReports = Array.isArray(json.olderReports) ? json.olderReports : []
+			if (labIdReports.length + olderReports.length === 0) {
+				setAllMessage('No culture reports found.')
+				return
+			}
+
+			const workbook = XLSX.utils.book_new()
+			if (labIdReports.length > 0) {
+				XLSX.utils.book_append_sheet(
+					workbook,
+					XLSX.utils.json_to_sheet(toSheetRows(labIdReports)),
+					'Lab ID reports'
+				)
+			}
+			if (olderReports.length > 0) {
+				XLSX.utils.book_append_sheet(
+					workbook,
+					XLSX.utils.json_to_sheet(toSheetRows(olderReports)),
+					'Older reports'
+				)
+			}
+			const today = formatIST(new Date(), false).replace(/\//g, '-')
+			XLSX.writeFile(workbook, `reportAll_upto_${today}.xlsx`)
+			setAllMessage(
+				`Downloaded ${labIdReports.length + olderReports.length} culture reports: ${labIdReports.length} in the "Lab ID reports" sheet and ${olderReports.length} in the "Older reports" sheet.`
+			)
+		} catch (error) {
+			console.error('Complete report failed:', error)
+			setAllMessage(
+				error.name === 'AbortError'
+					? 'The server took too long to respond. Please click Download all reports again.'
+					: 'Could not prepare the complete report (the server may still be waking up). Please wait a few seconds and try again.'
+			)
+		} finally {
+			clearTimeout(timer)
+			setDownloadingAll(false)
 		}
 	}
 
@@ -227,7 +292,21 @@ const MonthlyAnalytics = () => {
 				</button>
 			</div>
 
-			<h2>Monthly Report: Microorganism Analysis</h2>
+			<div className="mt-4 flex items-center gap-x-5">
+				<button
+					id="download-all-button"
+					onClick={downloadAllReports}
+					disabled={downloadingAll}
+					className="outline-none  rounded-lg px-5 py-3 bg-red-400 text-white text-lg disabled:opacity-60">
+					{downloadingAll ? 'Preparing…' : 'Download all reports'}
+				</button>
+				<span className="text-gray-700">
+					{allMessage ||
+						'One Excel file with every report, from the earliest to today.'}
+				</span>
+			</div>
+
+			<h2 className="mt-4">Monthly Report: Microorganism Analysis</h2>
 			{message && <p className="mt-3 text-gray-700">{message}</p>}
 			{report.length > 0 && (
 				<div>
